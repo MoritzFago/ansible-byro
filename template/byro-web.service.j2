@@ -1,0 +1,16 @@
+[Unit]
+Description=byro web service
+After=network.target
+
+[Service]
+User={{byro_user}}
+Group={{byro_user}}
+WorkingDirectory=/opt/{{byro_user}}/.local/lib/python3.7/site-packages/byro
+ExecStart=/opt/byro/.local/bin/gunicorn byro.wsgi \
+                      --name byro --workers 4 \
+                      --max-requests 1200  --max-requests-jitter 50 \
+                      --log-level=info --bind=127.0.0.1:8345
+Restart=on-failure
+
+[Install]
+WantedBy=multi-user.target

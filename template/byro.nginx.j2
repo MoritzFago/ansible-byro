@@ -1,0 +1,38 @@
+server {
+    listen 80 default_server;
+    listen [::]:80 ipv6only=on default_server;
+    server_name {{byro_domain}};
+}
+server {
+    listen 443 default_server;
+    listen [::]:443 ipv6only=on default_server;
+    server_name {{byro_domain}};
+
+    ssl on;
+    ssl_certificate /etc/ssl/private/{{byro_domain}}_fullchain.pem;
+    ssl_certificate_key /etc/ssl/private/{{byro_domain}}_privkey.pem;
+
+    add_header Referrer-Options same-origin;
+    add_header X-Content-Type-Options nosniff;
+
+    location / {
+        proxy_pass http://localhost:8345/;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto https;
+        proxy_set_header Host $http_host;
+    }
+
+    location /media/ {
+        alias /var/byro/data/media/;
+        add_header Content-Disposition 'attachment; filename="$1"';
+        expires 7d;
+        access_log off;
+    }
+
+    location /static/ {
+        alias /path/to/static.dist/;
+        access_log off;
+        expires 365d;
+        add_header Cache-Control "public";
+    }
+}
