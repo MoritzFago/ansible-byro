@@ -30,7 +30,7 @@ server {
     }
 
     location /static/ {
-        alias /path/to/static.dist/;
+        alias /opt/byro/static/;
         access_log off;
         expires 365d;
         add_header Cache-Control "public";

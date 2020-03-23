@@ -4,7 +4,13 @@
     smtp_server: ''
     byro_user: 'byro'
     byro_db_name: byro
+    byro_domain: ''
   remote_user: root
+  handlers:
+  - name: restart byro
+    systemd:
+      name: byro-web
+      state: restarted
   tasks:
   - name: ensure all prequisites
     package:
@@ -82,7 +88,9 @@
       owner: byro
       group: byro
       mode: '0600'
-      src: template/byro.j2
+      src: templates/byro.j2
+    notify:
+      - restart byro
 
   - name: install python dependencies
     pip:
@@ -100,8 +108,10 @@
     pip:
       executable: pip3
       name:
-        - git+https://github.com/MoritzFago/byro@d913bd1612bf17dfb782a62f28620ae683dc5063#subdirectory=src
+        - git+https://github.com/MoritzFago/byro#subdirectory=src
       extra_args: --user
+    notify:
+      - restart byro
     become: true
     become_user: "{{byro_user}}"
 
@@ -143,7 +153,7 @@
         cmd: python3 -m byro compilemessages
     - name: collect static files
       shell:
-        cmd: python3 -m byro collectstatic
+        cmd: python3 -m byro collectstatic -c --noinput
     - name: compress files
       shell:
         cmd: python3 -m byro compress
@@ -153,7 +163,7 @@
   
   - name: install systemd unit file
     template:
-      src: byro-web.service.j2
+      src: templates/byro-web.service.j2
       dest: /etc/systemd/system/byro-web.service
 
   - name: enable and start byro
@@ -161,4 +171,21 @@
       daemon_reload: yes
       name: byro-web
       enabled: yes
-      state: started
+
+  - name: place nginx config
+    template:
+      src: templates/byro.nginx.j2
+      dest: /etc/nginx/sites-available/byro.conf
+      # rm /etc/nginx/sites-enabled/default
+
+  - name: remove default nginx site
+    file:
+      path: /etc/nginx/sites-enabled/default
+      state: absent
+
+  - name: enable webserver configuration
+    file:
+      path: /etc/nginx/sites-enabled/byro.conf
+      src: ../sites-available/byro.conf
+      state: link
+
