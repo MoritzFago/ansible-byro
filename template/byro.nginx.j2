@@ -23,7 +23,7 @@ server {
     }
 
     location /media/ {
-        alias /var/byro/data/media/;
+        alias /opt/byro/data/media/;
         add_header Content-Disposition 'attachment; filename="$1"';
         expires 7d;
         access_log off;
