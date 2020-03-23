@@ -100,7 +100,7 @@
     pip:
       executable: pip3
       name:
-        - git+https://github.com/MoritzFago/byro#subdirectory=src@d913bd1612bf17dfb782a62f28620ae683dc5063
+        - git+https://github.com/MoritzFago/byro@d913bd1612bf17dfb782a62f28620ae683dc5063#subdirectory=src
       extra_args: --user
     become: true
     become_user: "{{byro_user}}"
