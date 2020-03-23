@@ -66,7 +66,7 @@
       - gettext
       - libjpeg-dev # only part of the requiremts documented in the developer documentation, not the administrator docurmentation
       - libmagic-dev
-      - python3-wheel # because the wheel installed with pip doesn't word
+      - python3-wheel # because the wheel installed with pip doesn't work
 
   - name: create byro config directory
     file:
@@ -90,7 +90,6 @@
       name:
         - pip
         - setuptools
-          #- wheel
         - gunicorn
         - psycopg2-binary
       extra_args: --user
@@ -101,7 +100,7 @@
     pip:
       executable: pip3
       name:
-        - git+https://github.com/MoritzFago/byro#subdirectory=src
+        - git+https://github.com/MoritzFago/byro#subdirectory=src@d913bd1612bf17dfb782a62f28620ae683dc5063
       extra_args: --user
     become: true
     become_user: "{{byro_user}}"
