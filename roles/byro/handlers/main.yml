@@ -1,0 +1,5 @@
+---
+- name: restart byro
+  systemd:
+    name: byro-web
+    state: restarted

@@ -2,6 +2,7 @@ server {
     listen 80 default_server;
     listen [::]:80 ipv6only=on default_server;
     server_name {{byro_domain}};
+{% if tls %}
 }
 server {
     listen 443 default_server;
@@ -11,14 +12,17 @@ server {
     ssl on;
     ssl_certificate /etc/ssl/private/{{byro_domain}}_fullchain.pem;
     ssl_certificate_key /etc/ssl/private/{{byro_domain}}_privkey.pem;
-
+{% endif %}
     add_header Referrer-Options same-origin;
     add_header X-Content-Type-Options nosniff;
 
     location / {
-        proxy_pass http://localhost:8345/;
+				# django only listens on ipv4 localhost
+        proxy_pass http://127.0.0.1:8345/;
         proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+{% if tls %}
         proxy_set_header X-Forwarded-Proto https;
+{% endif %}
         proxy_set_header Host $http_host;
     }
 

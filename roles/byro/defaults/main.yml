@@ -1,0 +1,5 @@
+---
+byro_user: byro
+byro_db_name: byro
+smtp_server: localhost
+tls: true

@@ -1,1 +1,2 @@
-byro ansible_python_interpreter=python3 byro_domain=byro.toppoint.de
+byro ansible_python_interpreter=python3 
+byro-test ansible_python_interpreter=python3
