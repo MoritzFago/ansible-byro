@@ -1,10 +1,10 @@
 ---
-- name: ensure all prequisites
-  package:
-    name: "{{item}}"
+- name: ensure all prequisites are installed
+  ansible.builtin.package:
+    name: "{{ item }}"
     state: present
-  with_items:
-    - python3.7
+  loop:
+    - "python{{ pyver }}"
     - python3-pip
     - nginx
     - git
@@ -13,8 +13,8 @@
     - python3-setuptools
 
 - name: add byro user
-  user:
-    name: "{{byro_user}}"
+  ansible.builtin.user:
+    name: "{{ byro_user }}"
     comment: byro system user
     state: present
     #      local: yes
@@ -23,26 +23,26 @@
     home: /opt/byro
     
 - name: add postgres user for byro
-  postgresql_user:
-    name: "{{byro_user}}"
+  community.general.postgresql_user:
+    name: "{{ byro_user }}"
     state: present
     login_unix_socket: /var/run/postgresql/
   become: true
   become_user: postgres
 
 - name: create byro db
-  postgresql_db:
+  community.general.postgresql_db:
     login_unix_socket: /var/run/postgresql/
-    name: "{{byro_db_name}}"
+    name: "{{ byro_db_name }}"
     state: present
-    owner: "{{byro_user}}"
+    owner: "{{ byro_user }}"
   become: true
   become_user: postgres
 
 - name: grant byro permissions on database
-  postgresql_user:
-    name: "{{byro_user}}"
-    db: "{{byro_db_name}}"
+  community.general.postgresql_user:
+    name: "{{ byro_user }}"
+    db: "{{ byro_db_name }}"
     state: present
     login_unix_socket: /var/run/postgresql/
     priv: "ALL"
@@ -50,10 +50,10 @@
   become_user: postgres
 
 - name: install byro build dependcies
-  package:
-    name: "{{item}}"
+  ansible.builtin.package:
+    name: "{{ item }}"
     state: present
-  with_items:
+  loop:
     - build-essential
     - python3-dev # i love inconplete documentation. rjsmin needs python.h
     - libssl-dev
@@ -63,15 +63,15 @@
     - python3-wheel # because the wheel installed with pip doesn't work
 
 - name: create byro config directory
-  file:
+  ansible.builtin.file:
     path: /etc/byro
-    owner: "{{byro_user}}"
-    group: "{{byro_user}}"
+    owner: "{{ byro_user }}"
+    group: "{{ byro_user }}"
     state: directory
     recurse: yes
 
 - name: place byro config
-  template:
+  ansible.builtin.template:
     dest: /etc/byro/byro.cfg
     owner: byro
     group: byro
@@ -81,7 +81,7 @@
     - restart byro # wird nicht ausgeführt
 
 - name: install python dependencies
-  pip:
+  ansible.builtin.pip:
     executable: pip3
     name:
       - pip
@@ -90,10 +90,10 @@
       - psycopg2-binary
     extra_args: --user
   become: true
-  become_user: "{{byro_user}}"
+  become_user: "{{ byro_user }}"
 
 - name: install byro
-  pip:
+  ansible.builtin.pip:
     executable: pip3
     name:
       - git+https://github.com/MoritzFago/byro#subdirectory=src
@@ -101,10 +101,10 @@
   notify:
     - restart byro
   become: true
-  become_user: "{{byro_user}}"
+  become_user: "{{ byro_user }}"
 
 - name: install byro plugins
-  pip:
+  ansible.builtin.pip:
     executable: pip3
     name:
       - git+https://github.com/MoritzFago/byro-fints
@@ -113,71 +113,71 @@
       - git+https://github.com/MoritzFago/byro-toppoint
     extra_args: --user
   become: true
-  become_user: "{{byro_user}}"
+  become_user: "{{ byro_user }}"
 
 - name: create byro data directory
-  file:
+  ansible.builtin.file:
     path: /opt/byro/data/
-    owner: "{{byro_user}}"
-    group: "{{byro_user}}"
+    owner: "{{ byro_user }}"
+    group: "{{ byro_user }}"
     state: directory
     recurse: yes
 
 - name: create byro media directory
-  file:
+  ansible.builtin.file:
     path: /opt/byro/data/media
-    owner: "{{byro_user}}"
-    group: "{{byro_user}}"
+    owner: "{{ byro_user }}"
+    group: "{{ byro_user }}"
     state: directory
     recurse: yes
 
 - block:
   - name: make database migrations
-    shell:
+    ansible.builtin.shell:
       cmd: python3 -m byro makemigrations
   - name: run database migrations
-    shell:
+    ansible.builtin.shell:
       cmd: python3 -m byro migrate
   - name: create messages for byro # not documented https://stackoverflow.com/a/40649775
-    shell:
+    ansible.builtin.shell:
       cmd: python3 -m byro makemessages
   - name: compile messages for byro
-    shell:
+    ansible.builtin.shell:
       cmd: python3 -m byro compilemessages
   - name: collect static files
-    shell:
+    ansible.builtin.shell:
       cmd: python3 -m byro collectstatic -c --noinput
   - name: compress files
-    shell:
+    ansible.builtin.shell:
       cmd: python3 -m byro compress
   # create superuser by running: sudo -u byro python3 -m byro createsuperuser
   become: yes
-  become_user: "{{byro_user}}"
+  become_user: "{{ byro_user }}"
 
 - name: install systemd unit file
-  template:
+  ansible.builtin.template:
     src: templates/byro-web.service.j2
     dest: /etc/systemd/system/byro-web.service
 
 - name: enable and start byro
-  systemd:
+  ansible.builtin.systemd:
     daemon_reload: yes
     name: byro-web
     enabled: yes
 
 - name: place nginx config
-  template:
+  ansible.builtin.template:
     src: templates/byro.nginx.j2
     dest: /etc/nginx/sites-available/byro.conf
     # rm /etc/nginx/sites-enabled/default
 
 - name: remove default nginx site
-  file:
+  ansible.builtin.file:
     path: /etc/nginx/sites-enabled/default
     state: absent
 
 - name: enable webserver configuration
-  file:
+  ansible.builtin.file:
     path: /etc/nginx/sites-enabled/byro.conf
     src: ../sites-available/byro.conf
     state: link

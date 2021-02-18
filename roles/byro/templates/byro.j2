@@ -6,17 +6,17 @@ static = /opt/byro/static
 
 [site]
 debug = False
-url = {{ byro_domain}}
+url = {{ byro_domain }}
 
 [database]
-name = byro
-user = byro
+name = {{ byro_db.name }} 
+user = {{ byro_db.db }} 
 
 [mail]
-from = byro@toppoint.de
-host = mx01.toppoint.de
-tls = true
+from = {{ mail.sent_address }} 
+host = {{ mail.host }} 
+tls = {{ mail.tls_usage }} 
 
 [locale]
-language_code = de
-time_zone = Europe/Berlin
+language_code = {{ byro_locale.language }} 
+time_zone = {{ byro_locale.tz }} 

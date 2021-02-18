@@ -1,5 +1,5 @@
 ---
 - name: restart byro
-  systemd:
+  ansible.builtin.systemd:
     name: byro-web
     state: restarted
