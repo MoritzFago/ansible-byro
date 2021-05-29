@@ -33,7 +33,7 @@
 - name: create byro db
   community.general.postgresql_db:
     login_unix_socket: /var/run/postgresql/
-    name: "{{ byro_db_name }}"
+    name: "{{ byro_db.name }}"
     state: present
     owner: "{{ byro_user }}"
   become: true
@@ -42,7 +42,7 @@
 - name: grant byro permissions on database
   community.general.postgresql_user:
     name: "{{ byro_user }}"
-    db: "{{ byro_db_name }}"
+    db: "{{ byro_db.name }}"
     state: present
     login_unix_socket: /var/run/postgresql/
     priv: "ALL"
@@ -182,3 +182,22 @@
     src: ../sites-available/byro.conf
     state: link
 
+- name: install backup script
+  ansible.builtin.copy:
+    dest: "/opt/{{ byro_user }}/backup.py"
+    owner: "{{ byro_user}}"
+    src: files/backup.py
+- name: install backup config
+  ansible.builtin.copy:
+    dest: "/opt/{{ byro_user }}/destinations.py"
+    owner: "{{ byro_user}}"
+    src: files/destinations.py
+- name: add backup job to crontab
+  ansible.builtin.cron:
+    hour: "3"
+    minute: "0"
+    name: "byro backup job"
+    job: "/opt/{{ byro_user }}/backup.py"
+    user: "{{ byro_user }}"
+  become: yes
+  become_user: "{{ byro_user }}"
