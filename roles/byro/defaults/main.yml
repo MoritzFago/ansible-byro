@@ -1,5 +1,16 @@
 ---
 byro_user: byro
-byro_db_name: byro
+byro_db:
+  name: "{{ byro_user }}"
+  user: "{{ byro_user }}"
+byro_domain: example.org
+byro_locale:
+  language: de
+  tz: Europe/Berlin
+mail:
+  sent_address: "byro@{{ byro_domain }}"
+  host: "mx.{{ byro_domain }}"
+  tls_usage: true
 smtp_server: localhost
 tls: true
+pyver: 3.7

@@ -1,17 +1,19 @@
 server {
     listen 80 default_server;
     listen [::]:80 ipv6only=on default_server;
-    server_name {{byro_domain}};
+    server_name {{ byro_domain }};
 {% if tls %}
+    ## redirect http to https ##
+    rewrite ^ https://$server_name$request_uri? permanent;
 }
 server {
     listen 443 default_server;
     listen [::]:443 ipv6only=on default_server;
-    server_name {{byro_domain}};
+    server_name {{ byro_domain }};
 
     ssl on;
-    ssl_certificate /etc/ssl/private/{{byro_domain}}_fullchain.pem;
-    ssl_certificate_key /etc/ssl/private/{{byro_domain}}_privkey.pem;
+    ssl_certificate /etc/ssl/private/{{ byro_domain }}_fullchain.pem;
+    ssl_certificate_key /etc/ssl/private/{{ byro_domain }}_privkey.pem;
 {% endif %}
     add_header Referrer-Options same-origin;
     add_header X-Content-Type-Options nosniff;
